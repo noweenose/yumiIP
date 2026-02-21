@@ -85,10 +85,35 @@ function getDict(source, target) {
     return {};
 }
 
+// shared translations loaded from Firestore on page load
+let firestoreEntries = [];
+
+async function loadFirestoreEntries() {
+    try {
+        const { initializeApp } = await import("https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js");
+        const { getFirestore, getDocs, collection } = await import("https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js");
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDfxfkFldcQAw45qYFQQ_SIBaIfWAsQToo",
+            authDomain: "filipino-converter.firebaseapp.com",
+            projectId: "filipino-converter",
+            storageBucket: "filipino-converter.firebasestorage.app",
+            messagingSenderId: "955763378837",
+            appId: "1:955763378837:web:196ca6e1e522ff3b20e99c"
+        };
+
+        const app = initializeApp(firebaseConfig, 'js-app');
+        const db = getFirestore(app);
+        const snapshot = await getDocs(collection(db, 'translations'));
+        firestoreEntries = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch (err) {
+        console.error('Could not load shared translations:', err);
+    }
+}
+
 function getCustomDictionary(source, target) {
-    const custom = JSON.parse(localStorage.getItem('customTranslations') || '[]');
     const merged = {};
-    custom
+    firestoreEntries
         .filter(e => e.dialect === source && e.target === target)
         .forEach(e => { merged[e.source] = e.translation; });
     return merged;
@@ -292,5 +317,6 @@ function useExample(text) {
     runTranslation();
 }
 
-// Init
-renderExamples();
+// Init — load shared translations then set up the UI
+setSource('cebuano');
+loadFirestoreEntries();

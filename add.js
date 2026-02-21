@@ -1,3 +1,18 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+import { getFirestore, collection, getDocs, addDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyDfxfkFldcQAw45qYFQQ_SIBaIfWAsQToo",
+    authDomain: "filipino-converter.firebaseapp.com",
+    projectId: "filipino-converter",
+    storageBucket: "filipino-converter.firebasestorage.app",
+    messagingSenderId: "955763378837",
+    appId: "1:955763378837:web:196ca6e1e522ff3b20e99c"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
 const builtInDictionary = {
     cebuano: {
         english: {
@@ -73,7 +88,6 @@ const builtInDictionary = {
     }
 };
 
-// which targets are valid for each source
 const validTargets = {
     cebuano: ['english', 'tagalog'],
     ilocano: ['english', 'tagalog'],
@@ -88,13 +102,19 @@ const sourceLabels = {
     tagalog: 'Tagalog'
 };
 
-let customEntries = JSON.parse(localStorage.getItem('customTranslations') || '[]');
+let customEntries = [];
 
-function saveEntries() {
-    localStorage.setItem('customTranslations', JSON.stringify(customEntries));
+async function loadEntries() {
+    try {
+        const snapshot = await getDocs(collection(db, 'translations'));
+        customEntries = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderEntries();
+    } catch (err) {
+        console.error('Failed to load entries:', err);
+        showToast('Could not load translations.', true);
+    }
 }
 
-// update the target dropdown when source changes
 function onSourceChange() {
     const dialect = document.getElementById('entry-dialect').value;
     const targetSelect = document.getElementById('entry-target');
@@ -105,7 +125,7 @@ function onSourceChange() {
         .join('');
 }
 
-function addEntry() {
+async function addEntry() {
     const dialect = document.getElementById('entry-dialect').value;
     const target = document.getElementById('entry-target').value;
     const sourcePhrase = document.getElementById('entry-source').value.trim().toLowerCase();
@@ -116,46 +136,61 @@ function addEntry() {
         return;
     }
 
-    // check for duplicate in custom entries
+    // check for duplicate in existing entries
     const duplicate = customEntries.find(e =>
         e.dialect === dialect && e.target === target && e.source === sourcePhrase
     );
     if (duplicate) {
-        showToast('Already in your custom entries!', true);
+        showToast('Already in the dictionary!', true);
         return;
     }
 
-    // check for conflict with built-in dictionary
+    // check against built-in dictionary
     const builtInMatch = builtInDictionary[dialect]?.[target]?.[sourcePhrase];
     if (builtInMatch) {
         const override = confirm(`"${sourcePhrase}" is already built-in as "${builtInMatch}".\n\nSave your version to override it?`);
         if (!override) return;
     }
 
-    customEntries.unshift({ dialect, target, source: sourcePhrase, translation, id: Date.now() });
+    try {
+        // save the main entry
+        const mainRef = await addDoc(collection(db, 'translations'), {
+            dialect, target, source: sourcePhrase, translation
+        });
+        customEntries.unshift({ id: mainRef.id, dialect, target, source: sourcePhrase, translation });
 
-    // auto-save the reverse so users don't have to add it manually
-    const reverseExists = customEntries.find(e =>
-        e.dialect === target && e.target === dialect && e.source === translation
-    );
-    if (!reverseExists) {
-        customEntries.unshift({ dialect: target, target: dialect, source: translation, translation: sourcePhrase, id: Date.now() + 1 });
+        // auto-save the reverse entry if it doesn't exist
+        const reverseExists = customEntries.find(e =>
+            e.dialect === target && e.target === dialect && e.source === translation
+        );
+        if (!reverseExists) {
+            const reverseRef = await addDoc(collection(db, 'translations'), {
+                dialect: target, target: dialect, source: translation, translation: sourcePhrase
+            });
+            customEntries.unshift({ id: reverseRef.id, dialect: target, target: dialect, source: translation, translation: sourcePhrase });
+        }
+
+        document.getElementById('entry-source').value = '';
+        document.getElementById('entry-translation').value = '';
+
+        renderEntries();
+        showToast('Translation added — reverse saved too!');
+    } catch (err) {
+        console.error('Failed to add entry:', err);
+        showToast('Could not save translation.', true);
     }
-
-    saveEntries();
-
-    document.getElementById('entry-source').value = '';
-    document.getElementById('entry-translation').value = '';
-
-    renderEntries();
-    showToast('Translation added');
 }
 
-function deleteEntry(id) {
-    customEntries = customEntries.filter(e => e.id !== id);
-    saveEntries();
-    renderEntries();
-    showToast('Entry removed.');
+async function deleteEntry(id) {
+    try {
+        await deleteDoc(doc(db, 'translations', id));
+        customEntries = customEntries.filter(e => e.id !== id);
+        renderEntries();
+        showToast('Entry removed.');
+    } catch (err) {
+        console.error('Failed to delete entry:', err);
+        showToast('Could not remove entry.', true);
+    }
 }
 
 function renderEntries() {
@@ -175,7 +210,7 @@ function renderEntries() {
             <span class="entry-arrow">→</span>
             <span class="entry-translation">${e.translation}</span>
             <span class="entry-target">${sourceLabels[e.target] || e.target}</span>
-            <button class="delete-btn" onclick="deleteEntry(${e.id})" title="Remove entry">
+            <button class="delete-btn" onclick="deleteEntry('${e.id}')" title="Remove entry">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M18 6L6 18M6 6l12 12"/>
                 </svg>
@@ -196,6 +231,10 @@ document.getElementById('entry-translation').addEventListener('keydown', e => {
     if (e.key === 'Enter') addEntry();
 });
 
-// kick off the target dropdown for the default source
+// expose functions to HTML onclick handlers
+window.addEntry = addEntry;
+window.deleteEntry = deleteEntry;
+window.onSourceChange = onSourceChange;
+
 onSourceChange();
-renderEntries();
+loadEntries();
