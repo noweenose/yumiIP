@@ -320,3 +320,12 @@ function useExample(text) {
 // Init — load shared translations then set up the UI
 setSource('cebuano');
 loadFirestoreEntries();
+
+// expose functions to HTML onclick handlers
+window.setSource = setSource;
+window.setTarget = setTarget;
+window.swapLanguages = swapLanguages;
+window.runTranslation = runTranslation;
+window.copyResult = copyResult;
+window.updateCharCount = updateCharCount;
+window.useExample = useExample;
