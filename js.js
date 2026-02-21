@@ -317,15 +317,19 @@ function useExample(text) {
     runTranslation();
 }
 
-// Init — load shared translations then set up the UI
+// attach event listeners instead of using onclick attributes in HTML
+document.getElementById('pill-cebuano').addEventListener('click', () => setSource('cebuano'));
+document.getElementById('pill-ilocano').addEventListener('click', () => setSource('ilocano'));
+document.getElementById('pill-english').addEventListener('click', () => setSource('english'));
+document.getElementById('pill-tagalog').addEventListener('click', () => setSource('tagalog'));
+document.getElementById('swap-btn').addEventListener('click', swapLanguages);
+document.getElementById('translate-btn').addEventListener('click', runTranslation);
+document.getElementById('copy-btn').addEventListener('click', copyResult);
+document.getElementById('input-text').addEventListener('input', updateCharCount);
+
+document.getElementById('tpill-0').addEventListener('click', function() { setTarget(this.dataset.lang); });
+document.getElementById('tpill-1').addEventListener('click', function() { setTarget(this.dataset.lang); });
+
+// Init
 setSource('cebuano');
 loadFirestoreEntries();
-
-// expose functions to HTML onclick handlers
-window.setSource = setSource;
-window.setTarget = setTarget;
-window.swapLanguages = swapLanguages;
-window.runTranslation = runTranslation;
-window.copyResult = copyResult;
-window.updateCharCount = updateCharCount;
-window.useExample = useExample;

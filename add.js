@@ -210,13 +210,18 @@ function renderEntries() {
             <span class="entry-arrow">→</span>
             <span class="entry-translation">${e.translation}</span>
             <span class="entry-target">${sourceLabels[e.target] || e.target}</span>
-            <button class="delete-btn" onclick="deleteEntry('${e.id}')" title="Remove entry">
+            <button class="delete-btn" data-id="${e.id}" title="Remove entry">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M18 6L6 18M6 6l12 12"/>
                 </svg>
             </button>
         </div>
     `).join('');
+
+    // use event delegation for delete buttons since they're dynamically rendered
+    list.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', () => deleteEntry(btn.dataset.id));
+    });
 }
 
 function showToast(msg, isError = false) {
@@ -231,10 +236,8 @@ document.getElementById('entry-translation').addEventListener('keydown', e => {
     if (e.key === 'Enter') addEntry();
 });
 
-// expose functions to HTML onclick handlers
-window.addEntry = addEntry;
-window.deleteEntry = deleteEntry;
-window.onSourceChange = onSourceChange;
+document.getElementById('entry-dialect').addEventListener('change', onSourceChange);
+document.getElementById('add-btn').addEventListener('click', addEntry);
 
 onSourceChange();
 loadEntries();
