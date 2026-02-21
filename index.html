@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Filipino Dialect Converter</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link href="style.css" rel="stylesheet">
+</head>
+<body>
+  <div class="deco deco-1"></div>
+  <div class="deco deco-2"></div>
+  <div class="deco deco-3"></div>
+
+  <div class="wrapper">
+    <header>
+      <p class="tagline">Filipino Language Converter</p>
+      <h1>Mag-<em>Salita</em> Tayo</h1>
+      <p class="subtitle">Translate Cebuano & Ilocano to English or Tagalog</p>
+    </header>
+
+    <!-- Dialect Source Selector -->
+    <div class="dialect-bar">
+      <span class="dialect-label">Source:</span>
+      <button class="pill active" onclick="setSource('cebuano')" id="pill-cebuano">🟡 Cebuano</button>
+      <button class="pill" onclick="setSource('ilocano')" id="pill-ilocano">🟢 Ilocano</button>
+      <a href="add-translations.html" class="pill manage-pill">
+        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px;"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+        Add Translations
+      </a>
+    </div>
+
+    <!-- Main Card -->
+    <div class="card">
+      <div class="card-top">
+        <!-- Input Panel -->
+        <div class="panel">
+          <span class="panel-label" id="source-label">Cebuano</span>
+          <textarea
+            id="input-text"
+            placeholder="Isulat dinhi ang imong teksto…"
+            maxlength="500"
+            oninput="updateCharCount()"
+          ></textarea>
+          <div class="char-count"><span id="char-count">0</span>/500</div>
+        </div>
+
+        <!-- Divider -->
+        <div class="divider">
+          <button class="swap-btn" onclick="swapLanguages()" title="Swap source language">
+            ⇄
+          </button>
+        </div>
+
+        <!-- Output Panel -->
+        <div class="panel output-panel">
+          <span class="panel-label" id="target-label">English</span>
+          <div class="output-text" id="output-area">
+            <span class="placeholder-text">Translation will appear here…</span>
+          </div>
+          <div style="display:flex; justify-content:flex-end; margin-top:auto;">
+            <button class="copy-btn" onclick="copyResult()">
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+              Copy
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Bar -->
+      <div class="card-bottom">
+        <div class="target-select-group">
+          <span class="target-select-label">Translate to:</span>
+          <div class="target-pills">
+            <button class="pill active" onclick="setTarget('english')" id="tpill-english">English</button>
+            <button class="pill" onclick="setTarget('tagalog')" id="tpill-tagalog">Tagalog</button>
+          </div>
+        </div>
+
+        <button class="translate-btn" onclick="runTranslation()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8l6 6"/><path d="M4 14l6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="M22 22l-5-10-5 10"/><path d="M14 18h6"/></svg>
+          Translate
+        </button>
+      </div>
+    </div>
+
+    <!-- Example Phrases -->
+    <div class="examples">
+      <p class="examples-label">Try these phrases</p>
+      <div class="examples-grid" id="examples-grid">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Copied to clipboard!</div>
+  <script src="js.js"></script>
+</body>
+</html>

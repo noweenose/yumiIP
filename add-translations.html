@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Add Translations – Filipino Dialect Converter</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --sun: #F4A227;
+      --sky: #1A3A5C;
+      --sand: #FDF5E6;
+      --leaf: #2D6A4F;
+      --coral: #E05C3A;
+      --cream: #FFFBF3;
+      --ink: #1C1C1C;
+      --mist: rgba(255,255,255,0.08);
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background-color: var(--sky);
+      min-height: 100vh;
+      overflow-x: hidden;
+      color: var(--cream);
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 10% 20%, rgba(244,162,39,0.15) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 80% at 90% 80%, rgba(45,106,79,0.2) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 40% at 50% 50%, rgba(224,92,58,0.07) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .deco { position: fixed; border-radius: 50%; pointer-events: none; z-index: 0; opacity: 0.06; }
+    .deco-1 { width: 600px; height: 600px; background: var(--sun); top: -200px; right: -200px; }
+    .deco-2 { width: 400px; height: 400px; background: var(--leaf); bottom: -150px; left: -100px; }
+    .deco-3 { width: 200px; height: 200px; border: 3px solid var(--sun); bottom: 200px; right: 80px; opacity: 0.15; }
+
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+
+    /* Back button */
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--mist);
+      border: 1.5px solid rgba(255,251,243,0.12);
+      color: rgba(255,251,243,0.6);
+      padding: 9px 18px;
+      border-radius: 100px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.25s ease;
+      margin-bottom: 40px;
+      animation: fadeUp 0.6s ease both;
+    }
+    .back-btn:hover {
+      border-color: var(--sun);
+      color: var(--sun);
+    }
+    .back-btn svg { width: 14px; height: 14px; }
+
+    /* Header */
+    header {
+      text-align: center;
+      margin-bottom: 44px;
+      animation: fadeUp 0.8s 0.1s ease both;
+    }
+    .tagline {
+      font-size: 11px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--sun);
+      margin-bottom: 12px;
+      font-weight: 500;
+    }
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      line-height: 1.1;
+      color: var(--cream);
+      margin-bottom: 10px;
+    }
+    h1 em { font-style: italic; color: var(--sun); }
+    .subtitle {
+      font-size: 14px;
+      color: rgba(255,251,243,0.5);
+      font-weight: 300;
+    }
+
+    /* Form Card */
+    .card {
+      background: rgba(255,251,243,0.04);
+      border: 1px solid rgba(255,251,243,0.1);
+      border-radius: 24px;
+      backdrop-filter: blur(20px);
+      overflow: hidden;
+      animation: fadeUp 0.8s 0.2s ease both;
+      margin-bottom: 32px;
+    }
+
+    .card-header {
+      padding: 24px 30px 20px;
+      border-bottom: 1px solid rgba(255,251,243,0.08);
+    }
+
+    .card-header h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--cream);
+      margin-bottom: 4px;
+    }
+    .card-header p {
+      font-size: 13px;
+      color: rgba(255,251,243,0.4);
+      font-weight: 300;
+    }
+
+    /* Dialect selector inside form */
+    .form-body {
+      padding: 28px 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .field label {
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: rgba(255,251,243,0.35);
+      font-weight: 500;
+    }
+
+    .field input, .field select {
+      background: rgba(255,251,243,0.05);
+      border: 1.5px solid rgba(255,251,243,0.12);
+      border-radius: 12px;
+      padding: 13px 16px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      color: var(--cream);
+      outline: none;
+      transition: border-color 0.2s ease;
+      width: 100%;
+    }
+
+    .field select {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(255,251,243,0.4)' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 36px;
+    }
+
+    .field select option {
+      background: #1A3A5C;
+      color: var(--cream);
+    }
+
+    .field input::placeholder { color: rgba(255,251,243,0.2); }
+    .field input:focus, .field select:focus {
+      border-color: var(--sun);
+    }
+
+    .arrow-divider {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255,251,243,0.2);
+      font-size: 22px;
+      padding-top: 26px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .add-btn {
+      padding: 14px 32px;
+      border-radius: 100px;
+      background: var(--sun);
+      color: var(--ink);
+      border: none;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      align-self: flex-end;
+    }
+    .add-btn:hover {
+      background: #FFBA44;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(244,162,39,0.35);
+    }
+    .add-btn:active { transform: translateY(0); }
+    .add-btn svg { width: 15px; height: 15px; }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    /* Entries list */
+    .entries-card {
+      background: rgba(255,251,243,0.04);
+      border: 1px solid rgba(255,251,243,0.1);
+      border-radius: 24px;
+      backdrop-filter: blur(20px);
+      overflow: hidden;
+      animation: fadeUp 0.8s 0.35s ease both;
+    }
+
+    .entries-header {
+      padding: 22px 30px 18px;
+      border-bottom: 1px solid rgba(255,251,243,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .entries-header h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 17px;
+      color: var(--cream);
+    }
+
+    .entry-count {
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--sun);
+      font-weight: 500;
+    }
+
+    .entries-list {
+      min-height: 80px;
+    }
+
+    .empty-state {
+      padding: 48px 30px;
+      text-align: center;
+      color: rgba(255,251,243,0.25);
+      font-size: 14px;
+      font-style: italic;
+    }
+
+    .entry-row {
+      display: grid;
+      grid-template-columns: auto 1fr auto 1fr auto;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 30px;
+      border-bottom: 1px solid rgba(255,251,243,0.06);
+      transition: background 0.2s ease;
+      animation: fadeIn 0.35s ease both;
+    }
+    .entry-row:last-child { border-bottom: none; }
+    .entry-row:hover { background: rgba(255,251,243,0.03); }
+
+    .entry-dialect {
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--sun);
+      font-weight: 500;
+      background: rgba(244,162,39,0.1);
+      border: 1px solid rgba(244,162,39,0.2);
+      border-radius: 100px;
+      padding: 3px 10px;
+      white-space: nowrap;
+    }
+
+    .entry-phrase {
+      font-size: 15px;
+      color: var(--cream);
+      font-weight: 500;
+    }
+
+    .entry-arrow {
+      color: rgba(255,251,243,0.2);
+      font-size: 14px;
+    }
+
+    .entry-translation {
+      font-size: 15px;
+      color: rgba(255,251,243,0.65);
+    }
+
+    .entry-target {
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: rgba(255,251,243,0.3);
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .delete-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: rgba(255,251,243,0.2);
+      padding: 4px;
+      border-radius: 6px;
+      transition: color 0.2s;
+      display: flex;
+      align-items: center;
+    }
+    .delete-btn:hover { color: var(--coral); }
+    .delete-btn svg { width: 14px; height: 14px; }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: var(--leaf);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 100px;
+      font-size: 13px;
+      font-weight: 500;
+      transition: transform 0.3s ease;
+      z-index: 999;
+    }
+    .toast.error { background: var(--coral); }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @media (max-width: 600px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .arrow-divider { display: none; }
+      .entry-row { grid-template-columns: auto 1fr auto; }
+      .entry-arrow, .entry-target { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="deco deco-1"></div>
+  <div class="deco deco-2"></div>
+  <div class="deco deco-3"></div>
+
+  <div class="wrapper">
+
+    <a class="back-btn" href="index.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 12H5M12 5l-7 7 7 7"/>
+      </svg>
+      Back to Converter
+    </a>
+
+    <header>
+      <p class="tagline">Dictionary Manager</p>
+      <h1>Add <em>Translations</em></h1>
+      <p class="subtitle">Expand the dictionary with your own words and phrases</p>
+    </header>
+
+    <!-- Add Entry Card -->
+    <div class="card">
+      <div class="card-header">
+        <h2>New Entry</h2>
+        <p>Add a word or phrase from Cebuano or Ilocano with its translation</p>
+      </div>
+      <div class="form-body">
+
+        <!-- Dialect & Target selectors -->
+        <div class="field-row">
+          <div class="field">
+            <label>Source Dialect</label>
+            <select id="entry-dialect">
+              <option value="cebuano">🟡 Cebuano</option>
+              <option value="ilocano">🟢 Ilocano</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Translate To</label>
+            <select id="entry-target">
+              <option value="english">English</option>
+              <option value="tagalog">Tagalog</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Phrase + Translation inputs -->
+        <div class="form-grid">
+          <div class="field">
+            <label>Original Phrase</label>
+            <input type="text" id="entry-source" placeholder="e.g. maayong buntag" />
+          </div>
+          <div class="arrow-divider">→</div>
+          <div class="field">
+            <label>Translation</label>
+            <input type="text" id="entry-translation" placeholder="e.g. good morning" />
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="add-btn" onclick="addEntry()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/>
+            </svg>
+            Add Translation
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Custom Entries List -->
+    <div class="entries-card">
+      <div class="entries-header">
+        <h2>Your Custom Entries</h2>
+        <span class="entry-count" id="entry-count">0 entries</span>
+      </div>
+      <div class="entries-list" id="entries-list">
+        <div class="empty-state">No custom translations yet. Add your first one above!</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // Load custom entries from localStorage
+    let customEntries = JSON.parse(localStorage.getItem('customTranslations') || '[]');
+
+    function saveEntries() {
+      localStorage.setItem('customTranslations', JSON.stringify(customEntries));
+    }
+
+    function addEntry() {
+      const dialect = document.getElementById('entry-dialect').value;
+      const target = document.getElementById('entry-target').value;
+      const sourcePhrase = document.getElementById('entry-source').value.trim().toLowerCase();
+      const translation = document.getElementById('entry-translation').value.trim().toLowerCase();
+
+      if (!sourcePhrase || !translation) {
+        showToast('Please fill in both fields!', true);
+        return;
+      }
+
+      // Check for duplicate
+      const duplicate = customEntries.find(e =>
+        e.dialect === dialect && e.target === target && e.source === sourcePhrase
+      );
+      if (duplicate) {
+        showToast('This phrase already exists!', true);
+        return;
+      }
+
+      customEntries.unshift({ dialect, target, source: sourcePhrase, translation, id: Date.now() });
+      saveEntries();
+
+      // Clear inputs
+      document.getElementById('entry-source').value = '';
+      document.getElementById('entry-translation').value = '';
+
+      renderEntries();
+      showToast('Translation added!');
+    }
+
+    function deleteEntry(id) {
+      customEntries = customEntries.filter(e => e.id !== id);
+      saveEntries();
+      renderEntries();
+      showToast('Entry removed.');
+    }
+
+    function renderEntries() {
+      const list = document.getElementById('entries-list');
+      const count = document.getElementById('entry-count');
+      count.textContent = `${customEntries.length} ${customEntries.length === 1 ? 'entry' : 'entries'}`;
+
+      if (customEntries.length === 0) {
+        list.innerHTML = '<div class="empty-state">No custom translations yet. Add your first one above!</div>';
+        return;
+      }
+
+      list.innerHTML = customEntries.map(e => `
+        <div class="entry-row" id="entry-${e.id}">
+          <span class="entry-dialect">${e.dialect === 'cebuano' ? 'Cebuano' : 'Ilocano'}</span>
+          <span class="entry-phrase">${e.source}</span>
+          <span class="entry-arrow">→</span>
+          <span class="entry-translation">${e.translation}</span>
+          <span class="entry-target">${e.target}</span>
+          <button class="delete-btn" onclick="deleteEntry(${e.id})" title="Remove entry">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 6L6 18M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function showToast(msg, isError = false) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.toggle('error', isError);
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2200);
+    }
+
+    // Allow Enter key to submit
+    document.getElementById('entry-translation').addEventListener('keydown', e => {
+      if (e.key === 'Enter') addEntry();
+    });
+
+    renderEntries();
+  </script>
+</body>
+</html>
