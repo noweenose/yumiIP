@@ -102,10 +102,10 @@ const sourceLabels = {
 };
 
 const placeholders = {
-    cebuano: 'Isulat dinhi ang imong teksto…',
-    ilocano: 'Isuratan ditoy ti teksto mo…',
+    cebuano: 'Type your text here…',
+    ilocano: 'Type your text here…',
     english: 'Type your text here…',
-    tagalog: 'Isulat ang iyong teksto dito…'
+    tagalog: 'Type your text here…'
 };
 
 const examples = {
@@ -249,9 +249,9 @@ function performTranslation(input) {
 
     const notFoundMsg = {
         english: "Translation not found. Try a simpler phrase or check the example phrases below.",
-        tagalog: "Hindi mahanap ang salin. Subukan ang mas simpleng parirala.",
-        cebuano: "Wala makit-an ang hubad. Sulayi ang mas simple nga pulong.",
-        ilocano: "Saannak a nabirukan ti patarus. Suruken ti aniaman a simple a balikas."
+        tagalog: "Translation not found. Try a simpler phrase or check the example phrases below.",
+        cebuano: "Translation not found. Try a simpler phrase or check the example phrases below.",
+        ilocano: "Translation not found. Try a simpler phrase or check the example phrases below."
     };
     return `<span style="color:rgba(255,251,243,0.4); font-style:italic;">${notFoundMsg[targetLang]}</span>`;
 }
