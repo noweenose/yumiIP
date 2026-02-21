@@ -304,11 +304,16 @@ function renderExamples() {
     const grid = document.getElementById('examples-grid');
     const list = examples[sourceDialect] || [];
     grid.innerHTML = list.map(e => `
-        <div class="example-card" onclick="useExample('${e.text}')">
+        <div class="example-card" data-text="${e.text}">
             <div class="example-source">${e.text}</div>
             <div class="example-meta">${sourceLabels[sourceDialect]} · ${e.hint}</div>
         </div>
     `).join('');
+
+    // event delegation since cards are dynamically rendered
+    grid.querySelectorAll('.example-card').forEach(card => {
+        card.addEventListener('click', () => useExample(card.dataset.text));
+    });
 }
 
 function useExample(text) {
