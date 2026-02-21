@@ -1,4 +1,3 @@
-// Built-in dictionary snapshot — only the "Try these phrases" examples
 const builtInDictionary = {
     cebuano: {
         english: {

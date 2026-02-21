@@ -1,7 +1,7 @@
 let sourceDialect = 'cebuano';
 let targetLang = 'english';
 
-// ── Translation Dictionary — only "Try these phrases" entries ─────
+// Translation Dictionary
 const dictionary = {
     cebuano: {
         english: {
@@ -41,7 +41,7 @@ const dictionary = {
     }
 };
 
-// ── Load custom entries from localStorage and merge into dictionary ──
+// Load custom entries from localStorage and merge into dictionary 
 function getCustomDictionary(dialect, target) {
     const custom = JSON.parse(localStorage.getItem('customTranslations') || '[]');
     const merged = {};
