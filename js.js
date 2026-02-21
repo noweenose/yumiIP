@@ -1,7 +1,6 @@
 let sourceDialect = 'cebuano';
 let targetLang = 'english';
 
-// Translation Dictionary
 const dictionary = {
     cebuano: {
         english: {
@@ -41,15 +40,73 @@ const dictionary = {
     }
 };
 
-// Load custom entries from localStorage and merge into dictionary 
-function getCustomDictionary(dialect, target) {
+// Build reverse dictionaries from the existing ones
+// e.g. english -> cebuano, tagalog -> ilocano, etc.
+function buildReverseDictionaries() {
+    const reversed = {};
+    for (const source in dictionary) {
+        for (const target in dictionary[source]) {
+            if (!reversed[target]) reversed[target] = {};
+            if (!reversed[target][source]) reversed[target][source] = {};
+            for (const phrase in dictionary[source][target]) {
+                const translation = dictionary[source][target][phrase];
+                // don't overwrite if already set — first one wins
+                if (!reversed[target][source][translation]) {
+                    reversed[target][source][translation] = phrase;
+                }
+            }
+        }
+    }
+    return reversed;
+}
+
+const reverseDictionary = buildReverseDictionaries();
+
+// All available source languages
+const allSources = ['cebuano', 'ilocano', 'english', 'tagalog'];
+
+// What targets are valid for a given source
+function getValidTargets(source) {
+    if (source === 'cebuano' || source === 'ilocano') return ['english', 'tagalog'];
+    if (source === 'english') return ['cebuano', 'ilocano'];
+    if (source === 'tagalog') return ['cebuano', 'ilocano'];
+    return [];
+}
+
+function getDict(source, target) {
+    // Built-in forward direction
+    if (dictionary[source] && dictionary[source][target]) {
+        return dictionary[source][target];
+    }
+    // Reverse direction
+    if (reverseDictionary[source] && reverseDictionary[source][target]) {
+        return reverseDictionary[source][target];
+    }
+    return {};
+}
+
+function getCustomDictionary(source, target) {
     const custom = JSON.parse(localStorage.getItem('customTranslations') || '[]');
     const merged = {};
     custom
-        .filter(e => e.dialect === dialect && e.target === target)
+        .filter(e => e.dialect === source && e.target === target)
         .forEach(e => { merged[e.source] = e.translation; });
     return merged;
 }
+
+const sourceLabels = {
+    cebuano: 'Cebuano',
+    ilocano: 'Ilocano',
+    english: 'English',
+    tagalog: 'Tagalog'
+};
+
+const placeholders = {
+    cebuano: 'Isulat dinhi ang imong teksto…',
+    ilocano: 'Isuratan ditoy ti teksto mo…',
+    english: 'Type your text here…',
+    tagalog: 'Isulat ang iyong teksto dito…'
+};
 
 const examples = {
     cebuano: [
@@ -67,29 +124,63 @@ const examples = {
         { text: "Agbitbitinnak", hint: "Expression" },
         { text: "Ay-ayatenka", hint: "Emotion" },
         { text: "Agingkamom!", hint: "Farewell" },
+    ],
+    english: [
+        { text: "Good morning", hint: "Greeting" },
+        { text: "Thank you very much", hint: "Gratitude" },
+        { text: "What is your name?", hint: "Question" },
+        { text: "I'm hungry", hint: "Expression" },
+        { text: "I love you", hint: "Emotion" },
+        { text: "Take care!", hint: "Farewell" },
+    ],
+    tagalog: [
+        { text: "Magandang umaga!", hint: "Greeting" },
+        { text: "Maraming salamat", hint: "Gratitude" },
+        { text: "Ano ang iyong pangalan?", hint: "Question" },
+        { text: "Nagugutom ako", hint: "Expression" },
+        { text: "Mahal kita", hint: "Emotion" },
+        { text: "Mag-ingat ka!", hint: "Farewell" },
     ]
 };
 
-function setSource(dialect) {
-    sourceDialect = dialect;
-    document.getElementById('pill-cebuano').classList.toggle('active', dialect === 'cebuano');
-    document.getElementById('pill-ilocano').classList.toggle('active', dialect === 'ilocano');
-    document.getElementById('source-label').textContent = dialect === 'cebuano' ? 'Cebuano' : 'Ilocano';
+function setSource(source) {
+    sourceDialect = source;
 
-    const placeholders = {
-        cebuano: 'Isulat dinhi ang imong teksto…',
-        ilocano: 'Isuratan ditoy ti teksto mo…'
-    };
-    document.getElementById('input-text').placeholder = placeholders[dialect];
+    // update pill states
+    allSources.forEach(s => {
+        const el = document.getElementById(`pill-${s}`);
+        if (el) el.classList.toggle('active', s === source);
+    });
+
+    document.getElementById('source-label').textContent = sourceLabels[source];
+    document.getElementById('input-text').placeholder = placeholders[source];
+
+    // update target pills to only show valid options
+    const validTargets = getValidTargets(source);
+    validTargets.forEach((t, i) => {
+        const el = document.getElementById(`tpill-${i}`);
+        if (el) {
+            el.textContent = sourceLabels[t];
+            el.dataset.lang = t;
+        }
+    });
+
+    // default to first valid target
+    setTarget(validTargets[0]);
     renderExamples();
     clearOutput();
 }
 
 function setTarget(lang) {
     targetLang = lang;
-    document.getElementById('tpill-english').classList.toggle('active', lang === 'english');
-    document.getElementById('tpill-tagalog').classList.toggle('active', lang === 'tagalog');
-    document.getElementById('target-label').textContent = lang === 'english' ? 'English' : 'Tagalog';
+
+    const validTargets = getValidTargets(sourceDialect);
+    validTargets.forEach((t, i) => {
+        const el = document.getElementById(`tpill-${i}`);
+        if (el) el.classList.toggle('active', t === lang);
+    });
+
+    document.getElementById('target-label').textContent = sourceLabels[lang];
     clearOutput();
 }
 
@@ -103,7 +194,17 @@ function updateCharCount() {
 }
 
 function swapLanguages() {
-    setSource(sourceDialect === 'cebuano' ? 'ilocano' : 'cebuano');
+    const validTargets = getValidTargets(sourceDialect);
+    // swap source to current target if it's a valid source
+    if (allSources.includes(targetLang)) {
+        const oldSource = sourceDialect;
+        setSource(targetLang);
+        // try to set target back to old source if valid
+        const newValidTargets = getValidTargets(targetLang);
+        if (newValidTargets.includes(oldSource)) {
+            setTarget(oldSource);
+        }
+    }
 }
 
 function runTranslation() {
@@ -120,7 +221,7 @@ function runTranslation() {
 }
 
 function performTranslation(input) {
-    const builtIn = dictionary[sourceDialect][targetLang];
+    const builtIn = getDict(sourceDialect, targetLang);
     const custom = getCustomDictionary(sourceDialect, targetLang);
     const dict = Object.assign({}, builtIn, custom);
 
@@ -147,10 +248,12 @@ function performTranslation(input) {
     if (result) return result;
 
     const notFoundMsg = {
-        cebuano: { english: "Translation not found. Try a simpler phrase or check the example phrases below.", tagalog: "Hindi mahanap ang salin. Subukan ang mas simpleng parirala." },
-        ilocano: { english: "Translation not found. Try a simpler phrase or check the example phrases below.", tagalog: "Hindi mahanap ang salin. Subukan ang mas simpleng parirala." }
+        english: "Translation not found. Try a simpler phrase or check the example phrases below.",
+        tagalog: "Hindi mahanap ang salin. Subukan ang mas simpleng parirala.",
+        cebuano: "Wala makit-an ang hubad. Sulayi ang mas simple nga pulong.",
+        ilocano: "Saannak a nabirukan ti patarus. Suruken ti aniaman a simple a balikas."
     };
-    return `<span style="color:rgba(255,251,243,0.4); font-style:italic;">${notFoundMsg[sourceDialect][targetLang]}</span>`;
+    return `<span style="color:rgba(255,251,243,0.4); font-style:italic;">${notFoundMsg[targetLang]}</span>`;
 }
 
 function capitalize(str) {
@@ -174,11 +277,11 @@ function showToast(msg) {
 
 function renderExamples() {
     const grid = document.getElementById('examples-grid');
-    const list = examples[sourceDialect];
+    const list = examples[sourceDialect] || [];
     grid.innerHTML = list.map(e => `
         <div class="example-card" onclick="useExample('${e.text}')">
             <div class="example-source">${e.text}</div>
-            <div class="example-meta">${sourceDialect === 'cebuano' ? 'Cebuano' : 'Ilocano'} · ${e.hint}</div>
+            <div class="example-meta">${sourceLabels[sourceDialect]} · ${e.hint}</div>
         </div>
     `).join('');
 }
