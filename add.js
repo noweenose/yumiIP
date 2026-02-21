@@ -133,13 +133,22 @@ function addEntry() {
     }
 
     customEntries.unshift({ dialect, target, source: sourcePhrase, translation, id: Date.now() });
+
+    // auto-save the reverse so users don't have to add it manually
+    const reverseExists = customEntries.find(e =>
+        e.dialect === target && e.target === dialect && e.source === translation
+    );
+    if (!reverseExists) {
+        customEntries.unshift({ dialect: target, target: dialect, source: translation, translation: sourcePhrase, id: Date.now() + 1 });
+    }
+
     saveEntries();
 
     document.getElementById('entry-source').value = '';
     document.getElementById('entry-translation').value = '';
 
     renderEntries();
-    showToast('Translation added!');
+    showToast('Translation added');
 }
 
 function deleteEntry(id) {
